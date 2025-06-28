@@ -1,34 +1,29 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, send_file, jsonify
+from flask_cors import CORS
 import os
-from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+CORS(app)
 
-UPLOAD_FOLDER = 'uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-@app.route('/')
+@app.route("/")
 def home():
-    return "✅ Siriyoub AI Server is ready to receive images!"
+    return "🎉 Siriyoub AI Server is running!"
 
-@app.route('/upload', methods=['POST'])
-def upload_image():
-    if 'image' not in request.files:
-        return jsonify({"error": "❌ No image part in request."}), 400
+@app.route("/animate", methods=["POST"])
+def animate():
+    if "image" not in request.files:
+        return jsonify({"error": "No image uploaded"}), 400
 
-    file = request.files['image']
-    if file.filename == '':
-        return jsonify({"error": "❌ No selected image."}), 400
+    image = request.files["image"]
+    filename = "uploaded_image.jpg"
+    image.save(filename)
 
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(filepath)
+    # ❗ بدل هذا لاحقًا بتوليد الفيديو الفعلي
+    fake_video = "sample_result.mp4"
+    if not os.path.exists(fake_video):
+        return jsonify({"error": "Video not found"}), 404
 
-    # رد تجريبي فقط - هنا يتم عادة تحويل الصورة إلى فيديو
-    return jsonify({"message": "✔️ Image received successfully!", "filename": filename}), 200
+    return send_file(fake_video, mimetype="video/mp4")
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=10000)
-
-
----
+    app.run(host="0.0.0.0", port=10000)
